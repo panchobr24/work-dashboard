@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Client, Sale, ImportanceLevel, WeeklySale } from './types';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { useSupabaseClients, useSupabaseSales } from './hooks/useSupabase';
 import { TabNavigation } from './components/TabNavigation';
 import { ClientList } from './components/ClientList';
 import { ClientForm } from './components/ClientForm';
@@ -11,51 +11,57 @@ import { Plus, Users, DollarSign } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'clients' | 'sales'>('clients');
-  const [clients, setClients] = useLocalStorage<Client[]>('clients', []);
-  const [sales, setSales] = useLocalStorage<Sale[]>('sales', []);
   const [showClientForm, setShowClientForm] = useState(false);
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();
   const [editingSale, setEditingSale] = useState<Sale | undefined>();
 
+  // Supabase hooks
+  const { 
+    clients, 
+    loading: clientsLoading, 
+    error: clientsError, 
+    addClient, 
+    updateClient, 
+    deleteClient 
+  } = useSupabaseClients();
 
-  const handleSaveClient = (clientData: Omit<Client, 'id' | 'createdAt'>) => {
-    if (editingClient) {
-      setClients(clients.map(client => 
-        client.id === editingClient.id 
-          ? { ...client, ...clientData }
-          : client
-      ));
-    } else {
-      const newClient: Client = {
-        ...clientData,
-        id: Date.now().toString(),
-        createdAt: new Date(),
-        weeklySales: []
-      };
-      setClients([...clients, newClient]);
+  const { 
+    sales, 
+    loading: salesLoading, 
+    error: salesError, 
+    addSale, 
+    updateSale, 
+    deleteSale 
+  } = useSupabaseSales();
+
+
+  const handleSaveClient = async (clientData: Omit<Client, 'id' | 'createdAt'>) => {
+    try {
+      if (editingClient) {
+        await updateClient(editingClient.id, clientData);
+      } else {
+        await addClient(clientData);
+      }
+      setShowClientForm(false);
+      setEditingClient(undefined);
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error);
     }
-    setShowClientForm(false);
-    setEditingClient(undefined);
   };
 
-  const handleSaveSale = (saleData: Omit<Sale, 'id' | 'createdAt'>) => {
-    if (editingSale) {
-      setSales(sales.map(sale => 
-        sale.id === editingSale.id 
-          ? { ...sale, ...saleData }
-          : sale
-      ));
-    } else {
-      const newSale: Sale = {
-        ...saleData,
-        id: Date.now().toString(),
-        createdAt: new Date()
-      };
-      setSales([...sales, newSale]);
+  const handleSaveSale = async (saleData: Omit<Sale, 'id' | 'createdAt'>) => {
+    try {
+      if (editingSale) {
+        await updateSale(editingSale.id, saleData);
+      } else {
+        await addSale(saleData);
+      }
+      setShowSaleForm(false);
+      setEditingSale(undefined);
+    } catch (error) {
+      console.error('Erro ao salvar venda:', error);
     }
-    setShowSaleForm(false);
-    setEditingSale(undefined);
   };
 
   const handleEditClient = (client: Client) => {
@@ -68,61 +74,74 @@ function App() {
     setShowSaleForm(true);
   };
 
-  const handleDeleteClient = (id: string) => {
+  const handleDeleteClient = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      setClients(clients.filter(client => client.id !== id));
+      try {
+        await deleteClient(id);
+      } catch (error) {
+        console.error('Erro ao excluir cliente:', error);
+      }
     }
   };
 
-  const handleUpdateImportance = (clientId: string, importance: ImportanceLevel) => {
-    setClients(clients.map(client => 
-      client.id === clientId 
-        ? { ...client, importanceLevel: importance }
-        : client
-    ));
-  };
-
-  const handleToggleWeeklySale = (clientId: string) => {
-    setClients(clients.map(client => {
-      if (client.id === clientId) {
-        const currentWeek = new Date();
-        const weekStart = new Date(currentWeek);
-        weekStart.setDate(currentWeek.getDate() - currentWeek.getDay() + 1); // Segunda-feira
-        
-        const existingSale = client.weeklySales?.find(sale => 
-          sale.weekStart.getTime() === weekStart.getTime()
-        );
-
-        let updatedSales = client.weeklySales || [];
-        
-        if (existingSale) {
-          // Atualizar venda existente
-          updatedSales = updatedSales.map(sale =>
-            sale.id === existingSale.id
-              ? { ...sale, sold: !sale.sold }
-              : sale
-          );
-        } else {
-          // Criar nova venda
-          const newSale: WeeklySale = {
-            id: Date.now().toString(),
-            weekStart: weekStart,
-            weekEnd: new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000), // Domingo
-            sold: true,
-            createdAt: new Date()
-          };
-          updatedSales = [...updatedSales, newSale];
-        }
-
-        return { ...client, weeklySales: updatedSales };
+  const handleUpdateImportance = async (clientId: string, importance: ImportanceLevel) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (client) {
+        await updateClient(clientId, { ...client, importanceLevel: importance });
       }
-      return client;
-    }));
+    } catch (error) {
+      console.error('Erro ao atualizar importância:', error);
+    }
   };
 
-  const handleDeleteSale = (id: string) => {
+  const handleToggleWeeklySale = async (clientId: string) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) return;
+
+      const currentWeek = new Date();
+      const weekStart = new Date(currentWeek);
+      weekStart.setDate(currentWeek.getDate() - currentWeek.getDay() + 1); // Segunda-feira
+      
+      const existingSale = client.weeklySales?.find(sale => 
+        sale.weekStart.getTime() === weekStart.getTime()
+      );
+
+      let updatedSales = client.weeklySales || [];
+      
+      if (existingSale) {
+        // Atualizar venda existente
+        updatedSales = updatedSales.map(sale =>
+          sale.id === existingSale.id
+            ? { ...sale, sold: !sale.sold }
+            : sale
+        );
+      } else {
+        // Criar nova venda
+        const newSale: WeeklySale = {
+          id: Date.now().toString(),
+          weekStart: weekStart,
+          weekEnd: new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000), // Domingo
+          sold: true,
+          createdAt: new Date()
+        };
+        updatedSales = [...updatedSales, newSale];
+      }
+
+      await updateClient(clientId, { ...client, weeklySales: updatedSales });
+    } catch (error) {
+      console.error('Erro ao atualizar venda semanal:', error);
+    }
+  };
+
+  const handleDeleteSale = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta venda?')) {
-      setSales(sales.filter(sale => sale.id !== id));
+      try {
+        await deleteSale(id);
+      } catch (error) {
+        console.error('Erro ao excluir venda:', error);
+      }
     }
   };
 
@@ -136,6 +155,38 @@ function App() {
   const totalClients = clients.length;
   const totalSales = sales.length;
   const totalRevenue = sales.reduce((sum, sale) => sum + sale.value, 0);
+
+  // Mostrar loading se qualquer operação estiver carregando
+  if (clientsLoading || salesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar erro se houver problemas
+  if (clientsError || salesError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">
+            <p className="text-lg font-semibold">Erro ao carregar dados</p>
+            <p className="text-sm">{clientsError || salesError}</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
