@@ -621,9 +621,22 @@ code {
 
 /* Mobile Optimizations */
 @media (max-width: 768px) {
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
   .container {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
   .px-4 {
@@ -687,18 +700,23 @@ code {
   .btn-maps {
     padding: 0.375rem 0.75rem;
     font-size: 0.8125rem;
+    min-width: auto;
+    flex-shrink: 0;
   }
   
   .btn-primary,
   .btn-success {
     padding: 0.75rem 1.5rem;
     font-size: 0.875rem;
+    width: 100%;
+    max-width: 100%;
   }
   
   /* Mobile form optimizations */
   .max-w-md {
     max-width: calc(100vw - 2rem);
     margin: 1rem;
+    width: calc(100vw - 2rem);
   }
   
   /* Mobile card optimizations */
@@ -754,6 +772,8 @@ code {
   /* Mobile input optimizations */
   input, select, textarea {
     font-size: 16px; /* Prevents zoom on iOS */
+    max-width: 100%;
+    width: 100%;
   }
   
   /* Mobile touch optimizations */
@@ -765,6 +785,258 @@ code {
   /* Mobile scroll optimizations */
   .overflow-y-auto {
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent horizontal overflow in cards */
+  .bg-white {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Mobile client card optimizations */
+  .client-card {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Mobile button groups */
+  .flex.gap-2 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  /* Mobile statistics cards */
+  .grid.grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Mobile header optimizations */
+  .flex.justify-between.items-center {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  /* Mobile tab navigation */
+  .flex.space-x-1 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  /* Mobile form fields */
+  .space-y-4 > * {
+    max-width: 100%;
+  }
+  
+  /* Mobile select dropdown */
+  select {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  /* Mobile phone display */
+  .phone-display {
+    max-width: 100%;
+    word-break: break-all;
+  }
+  
+  /* Mobile client card specific optimizations */
+  .client-card {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Mobile client card layout */
+  .bg-white.rounded-2xl.p-6 {
+    padding: 1rem;
+    margin: 0;
+    max-width: 100%;
+  }
+  
+  /* Mobile client card header */
+  .flex.items-start.justify-between {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  /* Mobile client info */
+  .flex.items-center.gap-4 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  /* Mobile client avatar */
+  .w-14.h-14 {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1rem;
+  }
+  
+  /* Mobile client name and tags */
+  .flex.items-center.gap-2 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  /* Mobile contact buttons */
+  .flex.gap-3 {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  /* Mobile contact button text */
+  .flex.items-center.gap-2.px-6.py-3 {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  /* Mobile client info footer */
+  .flex.items-center.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  /* Mobile filter section */
+  .flex.flex-col.lg\\:flex-row.gap-4 {
+    gap: 1rem;
+  }
+  
+  /* Mobile filter dropdowns */
+  .flex.gap-3 {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  /* Mobile filter select */
+  .px-4.py-3.border.border-gray-200.rounded-xl {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Mobile search input */
+  .w-full.pl-10.pr-4.py-3 {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Mobile action buttons */
+  .flex.gap-1 {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  /* Mobile importance dropdown */
+  .relative.group select {
+    max-width: 100%;
+    width: auto;
+    min-width: 80px;
+  }
+  
+  /* Mobile sales list optimizations */
+  .grid.grid-cols-1.md\\:grid-cols-3.gap-4 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Mobile sales card */
+  .bg-white.rounded-2xl.p-6.shadow-sm {
+    padding: 1rem;
+    max-width: 100%;
+  }
+  
+  /* Mobile sales card content */
+  .flex.items-center.justify-between {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  
+  /* Mobile sales card info */
+  .flex.items-center.gap-3 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  /* Mobile sales card actions */
+  .flex.gap-2 {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  /* Mobile sales filter section */
+  .flex.flex-col.lg\\:flex-row.gap-4 {
+    gap: 1rem;
+  }
+  
+  /* Mobile sales filter inputs */
+  .flex.gap-3 {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  /* Mobile sales filter input */
+  .w-full.px-4.py-3 {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Mobile sales filter date input */
+  .px-4.py-3.border.border-gray-200.rounded-xl {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Mobile sales filter select */
+  .px-4.py-3.border.border-gray-200.rounded-xl {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  /* Mobile sales sort button */
+  .btn-secondary.px-4.py-3 {
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+  
+  /* Mobile sales list item */
+  .bg-white.rounded-2xl.p-6.shadow-sm.border.border-gray-100 {
+    padding: 1rem;
+    max-width: 100%;
+  }
+  
+  /* Mobile sales item header */
+  .flex.items-center.justify-between.mb-4 {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  /* Mobile sales item info */
+  .flex.items-center.gap-3 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  /* Mobile sales item actions */
+  .flex.gap-2 {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  /* Mobile sales item footer */
+  .flex.items-center.justify-between.text-sm {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 }
 
