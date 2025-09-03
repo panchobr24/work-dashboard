@@ -1043,6 +1043,9 @@ code {
 /* Custom Select Styles */
 select {
   background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 select:focus {
@@ -1053,6 +1056,53 @@ select:focus {
 /* Custom dropdown arrow */
 .relative select {
   padding-right: 1.5rem;
+}
+
+/* Force select display */
+select[class*="bg-red-100"],
+select[class*="bg-yellow-100"],
+select[class*="bg-green-100"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Force business type span display */
+span[class*="bg-blue-100"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure select options are visible */
+select option {
+  background-color: white;
+  color: #374151;
+  padding: 0.5rem;
+}
+
+/* Force visibility for importance and business type elements */
+.relative select,
+span[class*="bg-blue-100"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+span[class*="bg-blue-100"] {
+  display: inline-block !important;
+}
+
+/* Mobile select optimizations */
+@media (max-width: 768px) {
+  select {
+    font-size: 14px;
+    min-height: 32px;
+  }
+  
+  .relative select {
+    padding-right: 1.25rem;
+  }
 }
 
 /* Hover effects for importance dropdown */

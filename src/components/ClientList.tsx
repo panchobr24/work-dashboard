@@ -193,13 +193,22 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelet
                   
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">{client.name}</h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <div className="relative group">
                         <select
                           value={client.importanceLevel}
                           onChange={(e) => handleImportanceChange(client.id, e.target.value as ImportanceLevel)}
-                          className={`px-2 py-1 rounded-full text-xs font-medium cursor-pointer border-0 outline-none appearance-none ${importanceColors[client.importanceLevel]} hover:opacity-80 transition-all duration-200`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer border-0 outline-none appearance-none ${importanceColors[client.importanceLevel]} hover:opacity-80 transition-all duration-200 min-w-[80px]`}
                           title="Clique para alterar a importância do cliente"
+                          style={{ 
+                            display: 'block',
+                            visibility: 'visible',
+                            opacity: 1,
+                            backgroundColor: client.importanceLevel === 'high' ? '#fef2f2' : 
+                                           client.importanceLevel === 'medium' ? '#fef3c7' : '#f0fdf4',
+                            color: client.importanceLevel === 'high' ? '#991b1b' : 
+                                   client.importanceLevel === 'medium' ? '#92400e' : '#166534'
+                          }}
                         >
                           {Object.entries(importanceLabels).map(([value, label]) => (
                             <option key={value} value={value}>{label}</option>
@@ -207,7 +216,16 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelet
                         </select>
                         <ChevronDown size={10} className="absolute right-1 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-600" />
                       </div>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                      <span 
+                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium whitespace-nowrap"
+                        style={{
+                          display: 'inline-block',
+                          visibility: 'visible',
+                          opacity: 1,
+                          backgroundColor: '#dbeafe',
+                          color: '#1e40af'
+                        }}
+                      >
                         {businessTypeLabels[client.businessType]}
                       </span>
                     </div>
