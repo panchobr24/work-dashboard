@@ -10,26 +10,51 @@ export function useSupabaseClients() {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
+      
+      // Tentar carregar do Supabase primeiro
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Converter as datas de string para Date objects
-      const clientsWithDates = data?.map(client => ({
-        ...client,
-        createdAt: new Date(client.created_at),
-        weeklySales: client.weekly_sales?.map((sale: any) => ({
-          ...sale,
-          weekStart: new Date(sale.week_start),
-          weekEnd: new Date(sale.week_end),
-          createdAt: new Date(sale.created_at)
-        })) || []
-      })) || [];
+        // Converter as datas de string para Date objects
+        const clientsWithDates = data?.map(client => ({
+          ...client,
+          createdAt: new Date(client.created_at),
+          weeklySales: client.weekly_sales?.map((sale: any) => ({
+            ...sale,
+            weekStart: new Date(sale.week_start),
+            weekEnd: new Date(sale.week_end),
+            createdAt: new Date(sale.created_at)
+          })) || []
+        })) || [];
 
-      setClients(clientsWithDates);
+        setClients(clientsWithDates);
+        return;
+      } catch (supabaseError) {
+        console.warn('Supabase não disponível, usando localStorage:', supabaseError);
+        
+        // Fallback para localStorage
+        const localClients = localStorage.getItem('clients');
+        if (localClients) {
+          const parsedClients = JSON.parse(localClients).map((client: any) => ({
+            ...client,
+            createdAt: new Date(client.createdAt),
+            weeklySales: client.weeklySales?.map((sale: any) => ({
+              ...sale,
+              weekStart: new Date(sale.weekStart),
+              weekEnd: new Date(sale.weekEnd),
+              createdAt: new Date(sale.createdAt)
+            })) || []
+          }));
+          setClients(parsedClients);
+        } else {
+          setClients([]);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar clientes');
     } finally {
@@ -39,45 +64,62 @@ export function useSupabaseClients() {
 
   const addClient = async (client: Omit<Client, 'id' | 'createdAt'>) => {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .insert([{
-          name: client.name,
-          phone: client.phone,
-          business_type: client.businessType,
-          city: client.city,
-          location: client.location,
-          importance_level: client.importanceLevel,
-          weekly_sales: client.weeklySales.map(sale => ({
-            id: sale.id,
-            week_start: sale.weekStart.toISOString(),
-            week_end: sale.weekEnd.toISOString(),
-            sold: sale.sold,
-            notes: sale.notes,
-            created_at: sale.createdAt.toISOString()
-          }))
-        }])
-        .select()
-        .single();
+      // Tentar salvar no Supabase primeiro
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .insert([{
+            name: client.name,
+            phone: client.phone,
+            business_type: client.businessType,
+            city: client.city,
+            location: client.location,
+            importance_level: client.importanceLevel,
+            weekly_sales: client.weeklySales.map(sale => ({
+              id: sale.id,
+              week_start: sale.weekStart.toISOString(),
+              week_end: sale.weekEnd.toISOString(),
+              sold: sale.sold,
+              notes: sale.notes,
+              created_at: sale.createdAt.toISOString()
+            }))
+          }])
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const newClient: Client = {
-        ...data,
-        id: data.id,
-        businessType: data.business_type,
-        importanceLevel: data.importance_level,
-        createdAt: new Date(data.created_at),
-        weeklySales: data.weekly_sales?.map((sale: any) => ({
-          ...sale,
-          weekStart: new Date(sale.week_start),
-          weekEnd: new Date(sale.week_end),
-          createdAt: new Date(sale.created_at)
-        })) || []
-      };
+        const newClient: Client = {
+          ...data,
+          id: data.id,
+          businessType: data.business_type,
+          importanceLevel: data.importance_level,
+          createdAt: new Date(data.created_at),
+          weeklySales: data.weekly_sales?.map((sale: any) => ({
+            ...sale,
+            weekStart: new Date(sale.week_start),
+            weekEnd: new Date(sale.week_end),
+            createdAt: new Date(sale.created_at)
+          })) || []
+        };
 
-      setClients(prev => [newClient, ...prev]);
-      return newClient;
+        setClients(prev => [newClient, ...prev]);
+        return newClient;
+      } catch (supabaseError) {
+        console.warn('Supabase não disponível, salvando no localStorage:', supabaseError);
+        
+        // Fallback para localStorage
+        const newClient: Client = {
+          ...client,
+          id: Date.now().toString(),
+          createdAt: new Date()
+        };
+        
+        const updatedClients = [newClient, ...clients];
+        setClients(updatedClients);
+        localStorage.setItem('clients', JSON.stringify(updatedClients));
+        return newClient;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao adicionar cliente');
       throw err;
@@ -173,21 +215,41 @@ export function useSupabaseSales() {
   const fetchSales = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('sales')
-        .select('*')
-        .order('created_at', { ascending: false });
+      
+      // Tentar carregar do Supabase primeiro
+      try {
+        const { data, error } = await supabase
+          .from('sales')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Converter as datas de string para Date objects
-      const salesWithDates = data?.map(sale => ({
-        ...sale,
-        date: new Date(sale.date),
-        createdAt: new Date(sale.created_at)
-      })) || [];
+        // Converter as datas de string para Date objects
+        const salesWithDates = data?.map(sale => ({
+          ...sale,
+          date: new Date(sale.date),
+          createdAt: new Date(sale.created_at)
+        })) || [];
 
-      setSales(salesWithDates);
+        setSales(salesWithDates);
+        return;
+      } catch (supabaseError) {
+        console.warn('Supabase não disponível, usando localStorage:', supabaseError);
+        
+        // Fallback para localStorage
+        const localSales = localStorage.getItem('sales');
+        if (localSales) {
+          const parsedSales = JSON.parse(localSales).map((sale: any) => ({
+            ...sale,
+            date: new Date(sale.date),
+            createdAt: new Date(sale.createdAt)
+          }));
+          setSales(parsedSales);
+        } else {
+          setSales([]);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar vendas');
     } finally {
